@@ -702,6 +702,10 @@ sources.
 %patch40 -p1
 %patch43 -p1
 
+sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
+# workaround to deploy mariadb@.service on EL7
+sed -i 's/IF(NOT CMAKE_VERSION VERSION_LESS 3.3.0 OR NOT RPM)/IF(TRUE)/g' support-files/CMakeLists.txt
+
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
 
@@ -1464,7 +1468,7 @@ fi
 %if %{with init_systemd}
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
 # mariadb@ is installed only when we have cmake newer than 3.3
-%if 0%{?fedora} > 22 || 0%{?rhel} > 7
+%if 0%{?fedora} > 22 || 0%{?rhel} > 6
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
 %endif
 %endif
