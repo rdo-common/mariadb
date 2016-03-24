@@ -616,6 +616,10 @@ MariaDB is a community developed branch of MySQL.
 %patch105 -p1
 %endif
 
+sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
+# workaround to deploy mariadb@.service on EL7
+sed -i 's/IF(NOT CMAKE_VERSION VERSION_LESS 3.3.0 OR NOT RPM)/IF(TRUE)/g' support-files/CMakeLists.txt
+
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
 
@@ -1325,7 +1329,7 @@ fi
 %{_datadir}/%{pkg_name}/policy/selinux/mariadb.*
 %{_datadir}/%{pkg_name}/systemd/mariadb.service
 # mariadb@ is installed only when we have cmake newer than 3.3
-%if 0%{?fedora} > 22 || 0%{?rhel} > 7
+%if 0%{?fedora} > 22 || 0%{?rhel} > 6
 %{_datadir}/%{pkg_name}/systemd/mariadb@.service
 %endif
 
