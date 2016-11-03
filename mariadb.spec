@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -569,6 +569,7 @@ MariaDB is a community developed branch of MySQL.
 %patch32 -p1
 %patch34 -p1
 %patch37 -p1
+%patch38 -p1
 %patch40 -p1
 %patch41 -p1
 
@@ -1306,6 +1307,9 @@ fi
 %endif
 
 %changelog
+* Thu Nov 03 2016 Michele Baldessari <michele@acksyn.org> - 3:10.1.18-3
+- Actually apply the revert added as patch in the previous release
+
 * Thu Nov 03 2016 Michele Baldessari <michele@acksyn.org> - 3:10.1.18-2
 - Back out upstream commit 7497ebf8a49bfe30bb4110f2ac20a30f804b7946 as it
   breaks the resource agent
