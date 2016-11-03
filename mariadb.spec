@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -175,6 +175,11 @@ Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch37:          %{pkgnamepatch}-notestdb.patch
+# Due to LP https://bugs.launchpad.net/tripleo/+bug/1638864
+# Reverts 7497ebf8a49bfe30bb4110f2ac20a30f804b7946 until we fix the
+# galera resource agent to cope with this change
+# When RHBZ#1391470 gets fixed and released in centos we can remove this patch
+Patch38:          %{pkgnamepatch}-10.1.18-revert-stdouterr-closing.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
@@ -1301,6 +1306,10 @@ fi
 %endif
 
 %changelog
+* Thu Nov 03 2016 Michele Baldessari <michele@acksyn.org> - 3:10.1.18-2
+- Back out upstream commit 7497ebf8a49bfe30bb4110f2ac20a30f804b7946 as it
+  breaks the resource agent
+
 * Tue Oct  4 2016 Jakub Dorňák <jdornak@redhat.com> - 3:10.1.18-1
 - Update to 10.1.18
 

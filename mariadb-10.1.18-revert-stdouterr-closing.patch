@@ -1,0 +1,35 @@
+diff -up mariadb-10.1.18/scripts/mysqld_safe.sh.revert mariadb-10.1.18/scripts/mysqld_safe.sh
+--- mariadb-10.1.18/scripts/mysqld_safe.sh.revert	2016-11-03 11:29:24.303905985 +0100
++++ mariadb-10.1.18/scripts/mysqld_safe.sh	2016-11-03 11:30:55.431325156 +0100
+@@ -738,10 +738,6 @@ else
+   logging=syslog
+ fi
+ 
+-# close stdout and stderr, everything goes to $logging now
+-exec 1>&-
+-exec 2>&-
+-
+ USER_OPTION=""
+ if test -w / -o "$USER" = "root"
+ then
+@@ -772,7 +768,7 @@ if [ ! -d $mysql_unix_port_dir ]
+ then
+   if ! `mkdir -p $mysql_unix_port_dir`
+   then
+-    log_error "Fatal error Can't create database directory '$mysql_unix_port'"
++    echo "Fatal error Can't create database directory '$mysql_unix_port'"
+     exit 1
+   fi
+   chown $user $mysql_unix_port_dir
+diff -up mariadb-10.1.18/support-files/mysql.server.sh.revert mariadb-10.1.18/support-files/mysql.server.sh
+--- mariadb-10.1.18/support-files/mysql.server.sh.revert	2016-11-03 11:29:51.698031995 +0100
++++ mariadb-10.1.18/support-files/mysql.server.sh	2016-11-03 11:33:14.795966211 +0100
+@@ -308,7 +308,7 @@ case "$mode" in
+     then
+       # Give extra arguments to mysqld with the my.cnf file. This script
+       # may be overwritten at next upgrade.
+-      $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" "$@" &
++      $bindir/mysqld_safe --datadir="$datadir" --pid-file="$mysqld_pid_file_path" "$@" >dev/null &
+       wait_for_ready; return_value=$?
+ 
+       # Make lock for RedHat / SuSE
