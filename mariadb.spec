@@ -123,7 +123,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1055,6 +1055,8 @@ fi
 %if %{with clibrary}
 %files libs
 %{_libdir}/mysql/libmysqlclient.so.*
+%{_libdir}/mysql/plugin/dialog.so
+%{_libdir}/mysql/plugin/mysql_clear_password.so
 %{_sysconfdir}/ld.so.conf.d/*
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
@@ -1080,6 +1082,8 @@ fi
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
 %{_datadir}/%{pkg_name}/charsets
+%exclude %{_libdir}/mysql/plugin/dialog.so
+%exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 %endif
 
 %if %{with errmsg}
@@ -1307,6 +1311,10 @@ fi
 %endif
 
 %changelog
+* Mon Dec 19 2016 Alfredo Moralejo <amoralej@redhat.com> - 3:10.1.18-4
+- dialog.so and mysql_clear_password.so should be in mariadb-libs package
+- Resolves rhbz#1138843
+
 * Thu Nov 03 2016 Michele Baldessari <michele@acksyn.org> - 3:10.1.18-3
 - Actually apply the revert added as patch in the previous release
 
