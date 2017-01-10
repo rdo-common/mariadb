@@ -7,8 +7,8 @@
 # --nocheck is not possible (e.g. in koji build)
 %{!?runselftest:%global runselftest 0}
 
-# Set this to 1 to see which tests fail
-%global check_testsuite 0
+# Set this to 1 to see which tests fail, but 0 on production ready build
+%global ignore_testsuite_result 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -82,6 +82,7 @@
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
+%global pcre_version 8.39
 %if 0%{?fedora} >= 21
 %bcond_without pcre
 %else
@@ -118,12 +119,12 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.1
-%global bugfixver 18
+%global compatver 10.0
+%global bugfixver 28
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -168,6 +169,8 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch12:          %{pkgnamepatch}-admincrash.patch
+Patch13:          %{pkgnamepatch}-ssl-cypher.patch
+Patch14:          %{pkgnamepatch}-example-config-files.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -179,7 +182,7 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Reverts 7497ebf8a49bfe30bb4110f2ac20a30f804b7946 until we fix the
 # galera resource agent to cope with this change
 # When RHBZ#1391470 gets fixed and released in centos we can remove this patch
-Patch38:          %{pkgnamepatch}-10.1.18-revert-stdouterr-closing.patch
+Patch38:          %{pkgnamepatch}-10.1.20-revert-stdouterr-closing.patch
 
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
@@ -188,7 +191,6 @@ Patch41:          %{pkgnamepatch}-galera-new-cluster-help.patch
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
-BuildRequires:    openssl-devel
 BuildRequires:    ncurses-devel
 BuildRequires:    perl
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
@@ -201,7 +203,7 @@ BuildRequires:    multilib-rpm-config
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
 %{?with_pcre:BuildRequires: pcre-devel >= 8.35}
-%{!?with_pcre:Provides: bundled(pcre) = 8.38}
+%{!?with_pcre:Provides: bundled(pcre) = %{pcre_version}}
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -217,15 +219,33 @@ BuildRequires:    perl(Socket)
 BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
+BuildRequires:    perl(Symbol)
+
+# Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
+%if 0%{?fedora} >= 26
+BuildRequires:    compat-openssl10-devel
+Requires:         compat-openssl10
+%else
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl
+BuildRequires:    openssl-devel
+%endif
+
+BuildRequires:    krb5-devel
+
 BuildRequires:    selinux-policy-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
+
+BuildRequires:    krb5-devel
 
 Requires:         bash
 Requires:         fileutils
 Requires:         grep
 Requires:         %{name}-common%{?_isa} = %{sameevr}
+
+# Explicit EVR requirement for -libs is needed for
+# https://bugzilla.redhat.com/show_bug.cgi?id=1406320
+Requires:         %{name}-libs%{?_isa} = %{sameevr}
 
 %if %{with mysql_names}
 Provides:         mysql = %{sameevr}
@@ -233,6 +253,8 @@ Provides:         mysql%{?_isa} = %{sameevr}
 Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %endif
+
+
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
@@ -439,7 +461,8 @@ or products (such as Excel), or data retrieved from the environment
 Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
 %{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
-Requires:         openssl-devel%{?_isa}
+# avoid issues with openssl1.0 / openssl1.1 / compat
+Requires:         pkgconfig(openssl)
 %if %{with mysql_names}
 Provides:         mysql-devel = %{sameevr}
 Provides:         mysql-devel%{?_isa} = %{sameevr}
@@ -522,7 +545,7 @@ MariaDB is a community developed branch of MySQL.
 
 %if %{with test}
 %package          test
-Summary:          The test suite distributed with MariaD
+Summary:          The test suite distributed with MariaDB
 Group:            Applications/Databases
 Requires:         %{name}%{?_isa} = %{sameevr}
 Requires:         %{name}-common%{?_isa} = %{sameevr}
@@ -564,6 +587,8 @@ MariaDB is a community developed branch of MySQL.
 %patch8 -p1
 %patch9 -p1
 %patch12 -p1
+%patch13 -p1
+%patch14 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -602,6 +627,20 @@ mkdir selinux
 sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{name}-server-galera.te
 cat selinux/%{name}-server-galera.te
 %endif
+
+# Check if PCRE version is actual
+%{!?with_pcre:
+pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
+pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
+
+if [ %{pcre_version} != "$pcre_maj.$pcre_min" ]
+then
+  echo "\n PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
+  exit 1
+fi
+}
+
+
 
 %build
 
@@ -732,7 +771,7 @@ mv %{buildroot}/%{_datadir}/pkgconfig/*.pc %{buildroot}/%{_libdir}/pkgconfig
 # but that's pretty wacko --- see also %%{name}-file-contents.patch)
 install -p -m 644 Docs/INFO_SRC %{buildroot}%{_libdir}/mysql/
 install -p -m 644 Docs/INFO_BIN %{buildroot}%{_libdir}/mysql/
-rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
+rm -r %{buildroot}%{_datadir}/doc/%{_pkgdocdirname}/MariaDB-server-%{version}/
 
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
@@ -852,6 +891,9 @@ rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
 # rename the wsrep README so it corresponds with the other README names
 mv Docs/README-wsrep Docs/README.wsrep
 
+# remove *.jar file from mysql-test
+rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
+
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
@@ -943,7 +985,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
     --suite-timeout=720 --testcase-timeout=30 --skip-rpl \
     --mysqld=--binlog-format=mixed --force-restart \
     --shutdown-timeout=60 --max-test-fail=0 \
-%if %{check_testsuite}
+%if %{ignore_testsuite_result}
     || :
 %else
     --skip-test-list=rh-skipped-tests.list
@@ -1307,6 +1349,18 @@ fi
 %endif
 
 %changelog
+* Tue Jan 10 2017 Michael Bayer <mbayer@redhat.com> - 3:10.1.20-1
+- Update to version 10.1.20
+- Add explicit EVR requirement in main package for -libs
+  Related: #1406320
+- Use correct macro when removing doc files
+  Resolves: #1400981
+- JdbcMariaDB.jar test removed
+- PCRE version check added
+  Related: #1382988, #1396945, #1096787
+- added temporary support to build with OpenSSL 1.0 on Fedora >= 26
+- added krb5-devel pkg as Buldrquires to prevent gssapi failure
+
 * Thu Nov 03 2016 Michele Baldessari <michele@acksyn.org> - 3:10.1.18-3
 - Actually apply the revert added as patch in the previous release
 
