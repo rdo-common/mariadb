@@ -119,8 +119,8 @@
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
-%global compatver 10.0
-%global bugfixver 28
+%global compatver 10.1
+%global bugfixver 20
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
