@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -726,7 +726,7 @@ export LDFLAGS
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DENABLED_LOCAL_INFILE=ON \
-         -DENABLE_DTRACE=ON \
+         -DENABLE_DTRACE=OFF \
          -DWITH_EMBEDDED_SERVER=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
@@ -1412,6 +1412,9 @@ fi
 %endif
 
 %changelog
+* Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-2
+- Disable DTrace
+
 * Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-1
 - Rebase to 10.1.25
 - Disable plugins 'cracklib' and 'gssapi' by default
