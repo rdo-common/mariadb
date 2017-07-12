@@ -144,11 +144,9 @@ Source7:          README.mysql-license
 Source10:         mysql.tmpfiles.d.in
 Source11:         mysql.service.in
 Source12:         mysql-prepare-db-dir.sh
-Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
-Source17:         mysql-wait-stop.sh
 Source18:         mysql@.service.in
 Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
@@ -637,8 +635,8 @@ cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
 
-cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
+cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE18} %{SOURCE19} \
    %{SOURCE70} scripts
 
 %if %{with galera}
@@ -835,8 +833,6 @@ install -D -p -m 755 scripts/mysql.init %{buildroot}%{daemondir}/%{daemon_name}
 
 # helper scripts for service starting
 install -p -m 755 scripts/mysql-prepare-db-dir %{buildroot}%{_libexecdir}/mysql-prepare-db-dir
-install -p -m 755 scripts/mysql-wait-ready %{buildroot}%{_libexecdir}/mysql-wait-ready
-install -p -m 755 scripts/mysql-wait-stop %{buildroot}%{_libexecdir}/mysql-wait-stop
 install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-check-socket
 install -p -m 755 scripts/mysql-check-upgrade %{buildroot}%{_libexecdir}/mysql-check-upgrade
 install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
@@ -1317,8 +1313,6 @@ fi
 
 %{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
-%{_libexecdir}/mysql-wait-ready
-%{_libexecdir}/mysql-wait-stop
 %{_libexecdir}/mysql-check-socket
 %{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
@@ -1414,6 +1408,7 @@ fi
 %changelog
 * Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-2
 - Disable DTrace
+- Remove mysql-wait-* scripts. They aren't needed when using systemd "Type=notify"
 
 * Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-1
 - Rebase to 10.1.25
