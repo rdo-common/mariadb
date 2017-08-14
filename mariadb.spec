@@ -122,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 25
+%global bugfixver 26
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -175,10 +175,6 @@ Patch9:           %{pkgnamepatch}-ownsetup.patch
 #   Patch13: patch of test of ssl cypher unsupported in Fedora
 Patch13:          %{pkgnamepatch}-ssl-cypher.patch
 
-# Patches specific for this mysql package
-#   Patch34:
-#   TODO: I should run covscan again
-Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 #   Patch37: don't create a test DB: https://jira.mariadb.org/browse/MDEV-12645
 Patch37:          %{pkgnamepatch}-notestdb.patch
 
@@ -616,7 +612,6 @@ MariaDB is a community developed branch of MySQL.
 %patch8 -p1
 %patch9 -p1
 %patch13 -p1
-%patch34 -p1
 %patch37 -p1
 %patch40 -p1
 
@@ -1406,6 +1401,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 14 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.26-1
+- Upgrade to 10.1.26
+
 * Mon Jul 10 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.25-2
 - Disable DTrace
 - Remove mysql-wait-* scripts. They aren't needed when using systemd "Type=notify"
