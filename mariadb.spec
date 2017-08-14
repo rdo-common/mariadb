@@ -126,7 +126,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -181,6 +181,12 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 # Patches for galera
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 
+Patch101:         0001-MDEV-10332-support-for-OpenSSL-1.1-and-LibreSSL.patch
+Patch102:         0002-MDEV-10332-support-for-OpenSSL-1.1-and-LibreSSL.patch
+Patch103:         0003-fix-crashes-with-openssl-fips-builds.patch
+Patch104:         0004-cleanup-check_openssl_compatibility.patch
+Patch105:         0005-fix-compilation-with-OpenSSL-1.1.patch
+
 BuildRequires:    cmake gcc-c++
 BuildRequires:    libaio-devel
 BuildRequires:    libedit-devel
@@ -227,16 +233,9 @@ BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
 BuildRequires:    perl(Symbol)
-# Temporary workaound to build with OpenSSL 1.0 on Fedora >=26 (wich requires OpenSSL 1.1)
-# https://jira.mariadb.org/browse/MDEV-10332
-%if 0%{?fedora} >= 26
-BuildRequires:    compat-openssl10-devel
-Requires:         compat-openssl10
-%else
 # for running some openssl tests rhbz#1189180
 BuildRequires:    openssl openssl-devel
 Requires:         openssl
-%endif
 
 Requires:         bash coreutils grep
 
@@ -614,6 +613,14 @@ MariaDB is a community developed branch of MySQL.
 %patch13 -p1
 %patch37 -p1
 %patch40 -p1
+
+%if 0%{?fedora} >= 26
+%patch101 -p1
+%patch102 -p1
+%patch103 -p1
+%patch104 -p1
+%patch105 -p1
+%endif
 
 # workaround for upstream bug #56342
 rm mysql-test/t/ssl_8k_key-master.opt
@@ -1401,6 +1408,9 @@ fi
 %endif
 
 %changelog
+* Mon Aug 14 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.26-2
+- Backport openssl 1.1 support from MariaDB 10.2
+
 * Mon Aug 14 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.26-1
 - Upgrade to 10.1.26
 
