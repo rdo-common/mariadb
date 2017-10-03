@@ -125,9 +125,13 @@
 %global compatver 10.1
 %global bugfixver 30
 
+# wsrep_sst_rsync_tunnel's current version
+%global wsrep_sst_rsync_tunnel_version 0550ffcc4553a7051760fa4b6b42df24724ae9ba
+%global wsrep_sst_rsync_tunnel_path wsrep_sst_rsync_tunnel-%{wsrep_sst_rsync_tunnel_version}
+
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -160,6 +164,7 @@ Source71:         LICENSE.clustercheck
 # Upstream said: "Generally MariaDB has more allows to allow for xtradb sst mechanism".
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
+Source73:         https://github.com/dciabrin/wsrep_sst_rsync_tunnel/archive/%{wsrep_sst_rsync_tunnel_version}.tar.gz
 
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
@@ -410,6 +415,7 @@ Requires(posttrans): systemd
 %endif
 # wsrep requirements
 Requires:         lsof net-tools rsync
+Requires:         socat
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -599,7 +605,7 @@ MariaDB is a community developed branch of MySQL.
 
 
 %prep
-%setup -q -n mariadb-%{version}
+%setup -q -n mariadb-%{version} -a 73
 
 %patch4 -p1
 %patch7 -p1
@@ -916,6 +922,9 @@ mv Docs/README-wsrep Docs/README.wsrep
 # remove *.jar file from mysql-test
 rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
 
+# install the wsrep_sst_rsync_tunnel script
+install -p -m 0755 %{wsrep_sst_rsync_tunnel_path}/wsrep_sst_rsync_tunnel %{buildroot}%{_bindir}/wsrep_sst_rsync_tunnel
+
 # RPMLINT E:
 # mariadb-bench.x86_64: E: script-without-shebang /usr/share/sql-bench/myisam.cnf
 chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
@@ -926,6 +935,10 @@ rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 # Disable plugins
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/auth_gssapi.cnf
 sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.d/cracklib_password_check.cnf
+
+# rename the wsrep_sst_rsync_tunnel README and license
+mv %{wsrep_sst_rsync_tunnel_path}/README.md %{wsrep_sst_rsync_tunnel_path}/README.wsrep_sst_rsync_tunnel
+mv %{wsrep_sst_rsync_tunnel_path}/COPYING %{wsrep_sst_rsync_tunnel_path}/COPYING.wsrep_sst_rsync_tunnel
 
 %if %{without clibrary}
 unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
@@ -1216,6 +1229,8 @@ fi
 
 %files server
 %doc README.mysql-cnf
+%doc %{wsrep_sst_rsync_tunnel_path}/README.wsrep_sst_rsync_tunnel
+%license %{wsrep_sst_rsync_tunnel_path}/COPYING.wsrep_sst_rsync_tunnel
 
 %{_bindir}/aria_chk
 %{_bindir}/aria_dump_log
@@ -1242,6 +1257,7 @@ fi
 %{_bindir}/wsrep_sst_mariabackup
 %{_bindir}/wsrep_sst_mysqldump
 %{_bindir}/wsrep_sst_rsync
+%{_bindir}/wsrep_sst_rsync_tunnel
 %{_bindir}/wsrep_sst_xtrabackup
 %{_bindir}/wsrep_sst_xtrabackup-v2
 %{?with_tokudb:%{_bindir}/tokuftdump}
@@ -1435,6 +1451,10 @@ fi
 %endif
 
 %changelog
+* Mon Jan 15 2018 Damien Ciabrini <dciabrin@redhat.com> - 3:10.1.30-2
+- Introduce wsrep_sst_rsync_tunnel for encrypted rsync SST
+  Related: lp#1719885
+
 * Tue Jan 09 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-1
 - Fix cmake arguments (blocked debug builds)
 - Fix loading of skipped tests files (omitted ppc list)
