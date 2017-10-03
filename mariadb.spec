@@ -135,6 +135,10 @@
 %global compatver 10.2
 %global bugfixver 11
 
+# wsrep_sst_rsync_tunnel's current version
+%global wsrep_sst_rsync_tunnel_version 0550ffcc4553a7051760fa4b6b42df24724ae9ba
+%global wsrep_sst_rsync_tunnel_path wsrep_sst_rsync_tunnel-%{wsrep_sst_rsync_tunnel_version}
+
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
 Release:          2%{?with_debug:.debug}%{?dist}
@@ -171,6 +175,7 @@ Source71:         LICENSE.clustercheck
 # Upstream said: "Generally MariaDB has more allows to allow for xtradb sst mechanism".
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
+Source73:         https://github.com/dciabrin/wsrep_sst_rsync_tunnel/archive/%{wsrep_sst_rsync_tunnel_version}.tar.gz
 
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
@@ -693,7 +698,7 @@ sources.
 
 
 %prep
-%setup -q -n mariadb-%{version}
+%setup -q -n mariadb-%{version} -a 73
 
 %patch4 -p1
 %patch7 -p1
@@ -1019,6 +1024,9 @@ rm -r %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/Mongo3.
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
+# install the wsrep_sst_rsync_tunnel script
+install -p -m 0755 %{wsrep_sst_rsync_tunnel_path}/wsrep_sst_rsync_tunnel %{buildroot}%{_bindir}/wsrep_sst_rsync_tunnel
+
 # script without shebang: https://jira.mariadb.org/browse/MDEV-14266
 chmod -x %{buildroot}%{_datadir}/sql-bench/myisam.cnf
 
@@ -1034,6 +1042,10 @@ sed -i 's/^plugin-load-add/#plugin-load-add/' %{buildroot}%{_sysconfdir}/my.cnf.
 rm %{buildroot}%{_mandir}/man1/{mysql_client_test_embedded,mysqltest_embedded}.1*
 %endif
 
+
+# rename the wsrep_sst_rsync_tunnel README and license
+mv %{wsrep_sst_rsync_tunnel_path}/README.md %{wsrep_sst_rsync_tunnel_path}/README.wsrep_sst_rsync_tunnel
+mv %{wsrep_sst_rsync_tunnel_path}/COPYING %{wsrep_sst_rsync_tunnel_path}/COPYING.wsrep_sst_rsync_tunnel
 
 %if %{without clibrary}
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
@@ -1353,6 +1365,8 @@ fi
 
 %files server
 %doc README.mysql-cnf
+%doc %{wsrep_sst_rsync_tunnel_path}/README.wsrep_sst_rsync_tunnel
+%license %{wsrep_sst_rsync_tunnel_path}/COPYING.wsrep_sst_rsync_tunnel
 
 %{_bindir}/aria_chk
 %{_bindir}/aria_dump_log
@@ -1380,6 +1394,7 @@ fi
 %{_bindir}/wsrep_sst_mariabackup
 %{_bindir}/wsrep_sst_mysqldump
 %{_bindir}/wsrep_sst_rsync
+%{_bindir}/wsrep_sst_rsync_tunnel
 %{_bindir}/wsrep_sst_xtrabackup
 %{_bindir}/wsrep_sst_xtrabackup-v2
 
@@ -1612,6 +1627,10 @@ fi
 %endif
 
 %changelog
+* Fri Jan  5 2018 Damien Ciabrini <dciabrin@redhat.com> - 3:10.2.11-3
+- Introduce wsrep_sst_rsync_tunnel for encrypted rsync SST
+  Related: lp#1719885
+
 * Mon Dec 11 2017 Michal Schorm <mschorm@redhat.com> - 3:10.2.11-2
 - Temporary fix for #1523875 removed, bug in Annobin fixed
   Resolves: #1523875
