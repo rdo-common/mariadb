@@ -122,9 +122,13 @@
 %global compatver 10.1
 %global bugfixver 20
 
+# wsrep_sst_rsync_tunnel's current version
+%global wsrep_sst_rsync_tunnel_version 0550ffcc4553a7051760fa4b6b42df24724ae9ba
+%global wsrep_sst_rsync_tunnel_path wsrep_sst_rsync_tunnel-%{wsrep_sst_rsync_tunnel_version}
+
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -134,7 +138,7 @@ URL:              http://mariadb.org
 # not only GPL code.  See README.mysql-license
 License:          GPLv2 with exceptions and LGPLv2 and BSD
 
-Source0:          http://mirrors.syringanetworks.net/mariadb/mariadb-%{version}/source/mariadb-%{version}.tar.gz
+Source0:          http://ftp.hosteurope.de/mirror/archive.mariadb.org/mariadb-%{version}/source/mariadb-%{version}.tar.gz
 Source2:          mysql_config_multilib.sh
 Source3:          my.cnf.in
 Source5:          README.mysql-cnf
@@ -158,6 +162,7 @@ Source52:         rh-skipped-tests-ppc-s390.list
 Source70:         clustercheck.sh
 Source71:         LICENSE.clustercheck
 Source72:         mariadb-server-galera.te
+Source73:         https://github.com/dciabrin/wsrep_sst_rsync_tunnel/archive/%{wsrep_sst_rsync_tunnel_version}.tar.gz
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
@@ -404,6 +409,7 @@ Requires:         lsof
 Requires:         net-tools
 Requires:         sh-utils
 Requires:         rsync
+Requires:         socat
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -577,7 +583,7 @@ MariaDB is a community developed branch of MySQL.
 %endif
 
 %prep
-%setup -q -n mariadb-%{version}
+%setup -q -n mariadb-%{version} -a 73
 
 %patch1 -p1
 %patch2 -p1
@@ -872,6 +878,9 @@ mkdir -p %{buildroot}%{_sysconfdir}/sysconfig
 touch %{buildroot}%{_sysconfdir}/sysconfig/clustercheck
 install -p -m 0755 scripts/clustercheck %{buildroot}%{_bindir}/clustercheck
 
+# install the wsrep_sst_rsync_tunnel script
+install -p -m 0755 %{wsrep_sst_rsync_tunnel_path}/wsrep_sst_rsync_tunnel %{buildroot}%{_bindir}/wsrep_sst_rsync_tunnel
+
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/rh-skipped-tests.list %{buildroot}%{_datadir}/mysql-test
 
@@ -890,6 +899,10 @@ rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
 
 # rename the wsrep README so it corresponds with the other README names
 mv Docs/README-wsrep Docs/README.wsrep
+
+# rename the wsrep_sst_rsync_tunnel README and license
+mv %{wsrep_sst_rsync_tunnel_path}/README.md %{wsrep_sst_rsync_tunnel_path}/README.wsrep_sst_rsync_tunnel
+mv %{wsrep_sst_rsync_tunnel_path}/COPYING %{wsrep_sst_rsync_tunnel_path}/COPYING.wsrep_sst_rsync_tunnel
 
 # remove *.jar file from mysql-test
 rm -rf %{buildroot}%{_datadir}/mysql-test/plugin/connect/connect/std_data/JdbcMariaDB.jar
@@ -1169,6 +1182,8 @@ fi
 
 %files server
 %doc README.mysql-cnf
+%doc %{wsrep_sst_rsync_tunnel_path}/README.wsrep_sst_rsync_tunnel
+%license %{wsrep_sst_rsync_tunnel_path}/COPYING.wsrep_sst_rsync_tunnel
 
 %{_bindir}/aria_chk
 %{_bindir}/aria_dump_log
@@ -1202,6 +1217,7 @@ fi
 %{_bindir}/wsrep_sst_common
 %{_bindir}/wsrep_sst_mysqldump
 %{_bindir}/wsrep_sst_rsync
+%{_bindir}/wsrep_sst_rsync_tunnel
 %{_bindir}/wsrep_sst_xtrabackup
 %{_bindir}/wsrep_sst_xtrabackup-v2
 %{?with_tokudb:%{_bindir}/tokuftdump}
@@ -1349,6 +1365,10 @@ fi
 %endif
 
 %changelog
+* Tue Oct  3 2017 Damien Ciabrini <dciabrin@redhat.com> - 3:10.1.20-2
+- Introduce wsrep_sst_rsync_tunnel for encrypted rsync SST
+  Related: lp#1719885
+
 * Tue Jan 10 2017 Michael Bayer <mbayer@redhat.com> - 3:10.1.20-1
 - Update to version 10.1.20
 - Add explicit EVR requirement in main package for -libs
