@@ -122,11 +122,11 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 26
+%global bugfixver 28
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -1408,6 +1408,9 @@ fi
 %endif
 
 %changelog
+* Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.28-1
+- Rebase to 10.1.28
+
 * Mon Aug 14 2017 Honza Horak <hhorak@redhat.com> - 3:10.1.26-2
 - Backport openssl 1.1 support from MariaDB 10.2
 
