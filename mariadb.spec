@@ -656,7 +656,7 @@ then
 fi
 %else
 # Check if the PCRE version that upstream use, is the same as the one present in system
-pcre_system_version=`pkgconf %{_libdir}/pkgconfig/libpcre.pc --modversion 2>/dev/null `
+pcre_system_version=`pkg-config %{_libdir}/pkgconfig/libpcre.pc --modversion 2>/dev/null `
 if [ "$pcre_system_version" != "$pcre_maj.$pcre_min" ]
 then
   echo "\n Warning: Error: Bundled PCRE version is not correct. \n\tSystem version number:$pcre_system_version \n\tUpstream version number: $pcre_maj.$pcre_min\n"
@@ -1300,8 +1300,16 @@ fi
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
 %{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
 %{_datadir}/%{pkg_name}/mysql_performance_tables.sql
-%{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/install.sql}
-%{?with_mroonga:%{_datadir}/%{pkg_name}/mroonga/uninstall.sql}
+%if %{with mroonga}
+%{_datadir}/%{pkg_name}/mroonga/install.sql
+%{_datadir}/%{pkg_name}/mroonga/uninstall.sql
+%license %{_datadir}/%{pkg_name}/mroonga/COPYING
+%license %{_datadir}/%{pkg_name}/mroonga/AUTHORS
+%license%{_datadir}/groonga-normalizer-mysql/lgpl-2.0.txt
+%license %{_datadir}/groonga/COPYING
+%doc %{_datadir}/groonga-normalizer-mysql/README.md
+%doc %{_datadir}/groonga/README.md
+%endif
 %{_datadir}/%{pkg_name}/my-*.cnf
 %{_datadir}/%{pkg_name}/wsrep.cnf
 %{_datadir}/%{pkg_name}/wsrep_notify
