@@ -80,11 +80,11 @@
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
-%global pcre_version 8.40
 %if 0%{?fedora} >= 21
-%bcond_without pcre
+%bcond_without bundled_pcre
 %else
-%bcond_with pcre
+%bcond_with bundled_pcre
+%global pcre_bundled_version 8.41
 %endif
 
 # We define some system's well known locations here so we can use them easily
@@ -122,7 +122,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 28
+%global bugfixver 29
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -160,16 +160,11 @@ Source71:         LICENSE.clustercheck
 # https://jira.mariadb.org/browse/MDEV-12646
 Source72:         mariadb-server-galera.te
 
-#   Patch2: testsuite README update, introducing skipped-tests.list
-#   upstream questioned, if they are insterested: https://jira.mariadb.org/browse/MDEV-12263
-Patch2:           %{pkgnamepatch}-install-test.patch
 #   Patch4: Red Hat distributions specific logrotate fix
 #   it would be big unexpected change, if we start shipping it now. Better wait for MariaDB 10.2
 Patch4:           %{pkgnamepatch}-logrotate.patch
 #   Patch7: add to the CMake file all files where we want macros to be expanded
 Patch7:           %{pkgnamepatch}-scripts.patch
-#   Patch8: resolve conflict, when we combine MariaDB and MySQL packages
-Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 #   Patch9: pre-configure to comply with guidelines
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 #   Patch13: patch of test of ssl cypher unsupported in Fedora
@@ -210,8 +205,8 @@ BuildRequires:    libarchive libarchive-devel
 # auth_pam.so plugin will be build if pam-devel is installed
 BuildRequires:    pam-devel
 # use either new enough version of pcre or provide bundles(pcre)
-%{?with_pcre:BuildRequires: pcre-devel >= 8.35}
-%{!?with_pcre:Provides: bundled(pcre) = %{pcre_version}}
+%{?with_bundled_pcre:BuildRequires: pcre-devel >= 8.35}
+%{!?with_bundled_pcre:Provides: bundled(pcre) = %{pcre_bundled_version}}
 # Few utilities needs Perl
 BuildRequires:    perl
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
@@ -605,10 +600,8 @@ MariaDB is a community developed branch of MySQL.
 %prep
 %setup -q -n mariadb-%{version}
 
-%patch2 -p1
 %patch4 -p1
 %patch7 -p1
-%patch8 -p1
 %patch9 -p1
 %patch13 -p1
 %patch37 -p1
@@ -648,17 +641,27 @@ sed 's/mariadb-server-galera/%{name}-server-galera/' %{SOURCE72} > selinux/%{nam
 cat selinux/%{name}-server-galera.te
 %endif
 
-# Check if PCRE version is actual
-%{!?with_pcre:
+
+
+# Get version of PCRE, that upstream use
 pcre_maj=`grep '^m4_define(pcre_major' pcre/configure.ac | sed -r 's/^m4_define\(pcre_major, \[([0-9]+)\]\)/\1/'`
 pcre_min=`grep '^m4_define(pcre_minor' pcre/configure.ac | sed -r 's/^m4_define\(pcre_minor, \[([0-9]+)\]\)/\1/'`
 
-if [ %{pcre_version} != "$pcre_maj.$pcre_min" ]
+%if %{without bundled_pcre}
+# Check if the PCRE version in macro 'pcre_bundled_version', used in Provides: bundled(...), is the same version as upstream actually bundles
+if [ %{pcre_bundled_version} != "$pcre_maj.$pcre_min" ]
 then
-  echo "\n Error: PCRE version is outdated. \n\tIncluded version:%{pcre_version} \n\tUpstream version: $pcre_maj.$pcre_min\n"
+  echo "\n Error: Bundled PCRE version is not correct. \n\tBundled version number:%{pcre_bundled_version} \n\tUpstream version number: $pcre_maj.$pcre_min\n"
   exit 1
 fi
-}
+%else
+# Check if the PCRE version that upstream use, is the same as the one present in system
+pcre_system_version=`pkgconf %{_libdir}/pkgconfig/libpcre.pc --modversion 2>/dev/null `
+if [ "$pcre_system_version" != "$pcre_maj.$pcre_min" ]
+then
+  echo "\n Warning: Error: Bundled PCRE version is not correct. \n\tSystem version number:$pcre_system_version \n\tUpstream version number: $pcre_maj.$pcre_min\n"
+fi
+%endif # PCRE
 
 
 
@@ -730,7 +733,7 @@ export LDFLAGS
          -DWITH_EMBEDDED_SERVER=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-%{?with_pcre: -DWITH_PCRE=system}\
+%{?with_bundled_pcre: -DWITH_PCRE=system}\
          -DWITH_JEMALLOC=system \
 %{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
 %{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
@@ -1408,6 +1411,9 @@ fi
 %endif
 
 %changelog
+* Tue Nov 21 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.29-1
+- Rebase to 10.1.29
+
 * Wed Oct 04 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.28-1
 - Rebase to 10.1.28
 
