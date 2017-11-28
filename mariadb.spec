@@ -1305,7 +1305,7 @@ fi
 %{_datadir}/%{pkg_name}/mroonga/uninstall.sql
 %license %{_datadir}/%{pkg_name}/mroonga/COPYING
 %license %{_datadir}/%{pkg_name}/mroonga/AUTHORS
-%license%{_datadir}/groonga-normalizer-mysql/lgpl-2.0.txt
+%license %{_datadir}/groonga-normalizer-mysql/lgpl-2.0.txt
 %license %{_datadir}/groonga/COPYING
 %doc %{_datadir}/groonga-normalizer-mysql/README.md
 %doc %{_datadir}/groonga/README.md
