@@ -60,6 +60,7 @@
 %bcond_without config
 
 # For deep debugging we need to build binaries with extra debug info
+# ISSUE: FTBFS in 10.1.30 version: https://jira.mariadb.org/browse/MDEV-14886
 %bcond_with debug
 
 # Include files for SysV init or systemd
@@ -122,7 +123,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.1
-%global bugfixver 29
+%global bugfixver 30
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
@@ -870,6 +871,10 @@ rm %{buildroot}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm %{buildroot}%{_mandir}/man1/mysql-test-run.pl.1*
 rm %{buildroot}%{_bindir}/mytop
 
+# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
+mv %{buildroot}/usr/lib/sysusers.d/sysusers.conf %{buildroot}/usr/lib/sysusers.d/mariadb.conf
+mv %{buildroot}/usr/lib/tmpfiles.d/tmpfiles.conf %{buildroot}/usr/lib/tmpfiles.d/mariadb.conf
+
 # put logrotate script where it needs to be
 mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{pkg_name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
@@ -1337,6 +1342,13 @@ fi
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
+# New systemd feature - used to reconstruct damaged /etc
+# https://github.com/MariaDB/server/commit/7bbc6c14d1
+%dir /usr/lib/sysusers.d
+/usr/lib/sysusers.d/mariadb.conf
+%dir /usr/lib/tmpfiles.d
+/usr/lib/tmpfiles.d/mariadb.conf
+
 %if %{with oqgraph}
 %files oqgraph-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
@@ -1419,6 +1431,9 @@ fi
 %endif
 
 %changelog
+* Sat Dec 23 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-1
+- Rebase to 10.1.30
+
 * Tue Nov 21 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.29-1
 - Rebase to 10.1.29
 

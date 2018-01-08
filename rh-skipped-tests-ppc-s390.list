@@ -1,0 +1,11 @@
+# Fails only on PPC64le
+# Fails since 10.1.30
+parts.partition_alter4_innodb                :
+parts.partition_basic_innodb                 :
+
+# Fails only on PPC64
+# Fails since 10.1.30
+vcol.vcol_supported_sql_funcs_innodb         :
+
+# Sometimes produces warnings on ppc; since 10.1.30
+parts.partition_alter4_innodb                :
