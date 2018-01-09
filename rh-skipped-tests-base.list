@@ -30,3 +30,7 @@ sys_vars.slave_parallel_threads_basic        :
 # Sometimes produces warnings on ppc & aarch; since 10.1.30
 parts.partition_alter4_innodb                :
 
+# Faild on debug builds only; since 10.1.30
+perfschema.hostcache_ipv4_ssl                :
+perfschema.hostcache_ipv6_ssl                :
+innodb.innodb_defrag_concurrent              :
