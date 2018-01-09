@@ -61,7 +61,7 @@
 
 # For deep debugging we need to build binaries with extra debug info
 # ISSUE: FTBFS in 10.1.30 version: https://jira.mariadb.org/browse/MDEV-14886
-%bcond_with debug
+%bcond_with    debug
 
 # Include files for SysV init or systemd
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
@@ -627,8 +627,8 @@ cat %{SOURCE50} | tee -a mysql-test/unstable-tests
 cat %{SOURCE51} | tee -a mysql-test/unstable-tests
 %endif
 
-%ifarch ppc ppc64 ppc64p7 s390 s390x
-cat %{SOURCE51} | tee -a mysql-test/unstable-tests
+%ifarch ppc ppc64 ppc64p7 ppc64le s390 s390x
+cat %{SOURCE52} | tee -a mysql-test/unstable-tests
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} \
@@ -734,14 +734,14 @@ export LDFLAGS
          -DWITH_EMBEDDED_SERVER=ON \
          -DWITH_SSL=system \
          -DWITH_ZLIB=system \
-%{?with_bundled_pcre: -DWITH_PCRE=system}\
+%{?with_bundled_pcre: -DWITH_PCRE=system} \
          -DWITH_JEMALLOC=system \
-%{!?with_tokudb: -DWITHOUT_TOKUDB=ON}\
-%{!?with_mroonga: -DWITHOUT_MROONGA=ON}\
-%{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON}\
+%{!?with_tokudb: -DWITHOUT_TOKUDB=ON} \
+%{!?with_mroonga: -DWITHOUT_MROONGA=ON} \
+%{!?with_oqgraph: -DWITHOUT_OQGRAPH=ON} \
          -DTMPDIR=/var/tmp \
-%{?with_debug: -DCMAKE_BUILD_TYPE=Debug}\
-%{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
+%{?with_debug: -DCMAKE_BUILD_TYPE=Debug} \
+%{?_hardened_build: -DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
 make %{?_smp_mflags} VERBOSE=1
 
@@ -1431,6 +1431,10 @@ fi
 %endif
 
 %changelog
+* Tue Jan 09 2018 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-1
+- Fix cmake arguments (blocked debug builds)
+- Fix loading of skipped tests files (omitted ppc list)
+
 * Sat Dec 23 2017 Michal Schorm <mschorm@redhat.com> - 3:10.1.30-1
 - Rebase to 10.1.30
 

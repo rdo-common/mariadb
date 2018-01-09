@@ -26,3 +26,7 @@ innodb.innodb_defrag_binlog                  :
 sys_vars.log_error_func                      :
 sys_vars.log_error_func2                     :
 sys_vars.slave_parallel_threads_basic        :
+
+# Sometimes produces warnings on ppc & aarch; since 10.1.30
+parts.partition_alter4_innodb                :
+
