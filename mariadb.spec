@@ -43,6 +43,9 @@
 # hierarchies and more complex graph structures to be handled in a relational fashion
 %bcond_without oqgraph
 
+# TEMP disable Sphinx storage engine for RDO/EL7
+%global _without_sphinx 1
+
 # Other plugins
 # Allow to override the values outside of spec
 # https://github.com/rpm-software-management/rpm/blob/34c2ba3c/macros.in#L100-L141
@@ -193,6 +196,9 @@ Patch37:          %{pkgnamepatch}-notestdb.patch
 Patch40:          %{pkgnamepatch}-galera.cnf.patch
 Patch43:          %{pkgnamepatch}-recovery.patch
 
+# aarch64 gcc 4.x workaround https://jira.mariadb.org/browse/MDEV-14318
+Patch99:          MDEV-14318.patch
+
 BuildRequires:    cmake gcc-c++
 BuildRequires:    zlib-devel
 BuildRequires:    multilib-rpm-config
@@ -222,9 +228,9 @@ BuildRequires:    pam-devel
 %if 0%{?fedora} >= 22 || 0%{?rhel} > 7
 BuildRequires:    perl-interpreter
 BuildRequires:    perl-generators
-%endif
 # Some tests requires python
 BuildRequires:    python3
+%endif
 # Tests requires time and ps and some perl modules
 BuildRequires:    procps
 BuildRequires:    time
@@ -264,7 +270,6 @@ Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %endif
 
-Suggests:         %{name}-server%{?_isa} = %{sameevr}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
@@ -404,14 +409,6 @@ Requires:         %{name}%{?_isa}
 %endif
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
-Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
-Recommends:       %{name}-backup%{?_isa} = %{sameevr}
-Recommends:       %{name}-craclkib-password-check%{?_isa} = %{sameevr}
-Recommends:       %{name}-gssapi-server%{?_isa} = %{sameevr}
-Recommends:       %{name}-rocksdb-engine%{?_isa} = %{sameevr}
-Recommends:       %{name}-tokudb-engine%{?_isa} = %{sameevr}
-
-Suggests:         mytop
 
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
@@ -706,6 +703,7 @@ sources.
 %patch37 -p1
 %patch40 -p1
 %patch43 -p1
+%patch99 -p1
 
 sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 # workaround to deploy mariadb@.service on EL7

@@ -1,0 +1,14 @@
+index d291f6f..299efe3 100644
+--- a/storage/innobase/CMakeLists.txt
++++ b/storage/innobase/CMakeLists.txt
+@@ -175,7 +175,10 @@ IF(CMAKE_COMPILER_IS_GNUCXX AND CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+       btr/btr0btr.cc
+       btr/btr0cur.cc
+       buf/buf0buf.cc
++      fts/fts0fts.cc
+       gis/gis0sea.cc
++      handler/handler0alter.cc
++      row/row0mysql.cc
+       COMPILE_FLAGS "-O0"
+       )
+   ENDIF()
