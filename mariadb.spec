@@ -199,7 +199,7 @@ BuildRequires:    krb5-devel
 BuildRequires:    selinux-policy-devel
 %{?with_init_systemd:BuildRequires: systemd systemd-devel}
 # Sphinx storage engine
-BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
+#BuildRequires:    sphinx libsphinxclient libsphinxclient-devel
 # Bison SQL parser
 BuildRequires:    bison bison-devel
 # Jemalloc
@@ -251,7 +251,7 @@ Provides:         mysql-compat-client = %{sameevr}
 Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %endif
 
-Suggests:         %{name}-server%{?_isa} = %{sameevr}
+#Suggests:         %{name}-server%{?_isa} = %{sameevr}
 
 # MySQL (with caps) is upstream's spelling of their own RPMs for mysql
 %{?obsoleted_mysql_case_evr:Obsoletes: MySQL < %{obsoleted_mysql_case_evr}}
@@ -390,19 +390,19 @@ Requires:         %{name}%{?_isa}
 %endif
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
-Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
+#Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 Requires:         coreutils
 Requires(pre):    /usr/sbin/useradd
 # Sphinx storage engine
-Recommends:       sphinx libsphinxclient
+#Recommends:       sphinx libsphinxclient
 # Bison SQL parser
 Requires:         bison
 # Cracklib plugin:
-Recommends:       cracklib-dicts
+#Recommends:       cracklib-dicts
 # Mariabackup tool
-Recommends:       libarchive
+#Recommends:       libarchive
 # Jemalloc
 Requires:         jemalloc
 %if %{with init_systemd}
