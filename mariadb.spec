@@ -131,7 +131,7 @@
 
 Name:             mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          2.1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
 Summary:          A community developed branch of MySQL
@@ -390,7 +390,7 @@ Requires:         %{name}%{?_isa}
 %endif
 Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-errmsg%{?_isa} = %{sameevr}
-#Recommends:       %{name}-server-utils%{?_isa} = %{sameevr}
+Requires:         %{name}-server-utils%{?_isa} = %{sameevr}
 Requires:         %{_sysconfdir}/my.cnf
 Requires:         %{_sysconfdir}/my.cnf.d
 Requires:         coreutils
@@ -400,9 +400,9 @@ Requires(pre):    /usr/sbin/useradd
 # Bison SQL parser
 Requires:         bison
 # Cracklib plugin:
-#Recommends:       cracklib-dicts
+Requires:         cracklib-dicts
 # Mariabackup tool
-#Recommends:       libarchive
+Requires:         libarchive
 # Jemalloc
 Requires:         jemalloc
 %if %{with init_systemd}
@@ -1451,7 +1451,7 @@ fi
 %endif
 
 %changelog
-* Mon Jan 15 2018 Damien Ciabrini <dciabrin@redhat.com> - 3:10.1.30-2
+* Mon Jan 15 2018 Damien Ciabrini <dciabrin@redhat.com> - 3:10.1.30-2.1
 - Introduce wsrep_sst_rsync_tunnel for encrypted rsync SST
   Related: lp#1719885
 
