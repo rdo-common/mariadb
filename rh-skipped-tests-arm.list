@@ -1,8 +1,37 @@
-main.partition_exchange             : #1399847
-main.analyze_stmt_orderby           : #1399847
-main.explain_json_innodb            : #1399847
-main.explain_json_format_partitions : #1399847
-main.analyze_format_json            : #1399847
-main.explain_json                   : #1399847
-main.subselect_cache                : #1399847
-main.type_year                      : #1399847
+# Fails since 10.3.8, only on armv7hl
+versioning.auto_increment :
+versioning.commit_id :
+versioning.delete :
+versioning.foreign :
+versioning.insert :
+versioning.insert2 :
+versioning.select2 :
+versioning.update :
+
+# Fails since 10.3.8, on both armv7hl and aarch64
+mariabackup.system_versioning :
+
+# Fails since 10.3.9, on both armv7hl and aarch64
+disks.disks :
+encryption.create_or_replace :
+federated.federatedx_versioning :
+
+# Fails since 10.3.9, only on armv7hl
+versioning.alter :
+versioning.replace :
+versioning.select :
+versioning.truncate :
+versioning.trx_id :
+
+# Fails since 10.3.9, only on aarch64
+innodb_gis.kill_server :
+innodb_gis.rtree_search :
+innodb.innodb_defrag_concurrent :
+parts.partition_alter1_1_2_innodb :
+parts.partition_alter1_2_innodb :
+parts.partition_alter2_1_1_innodb :
+parts.partition_alter2_1_2_innodb :
+parts.partition_alter2_2_1_innodb :
+parts.partition_alter2_2_2_innodb :
+parts.partition_basic_innodb :
+parts.part_supported_sql_func_innodb :
