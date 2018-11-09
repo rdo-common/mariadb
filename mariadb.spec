@@ -149,7 +149,7 @@
 
 Name:             mariadb
 Version:          10.3.10
-Release:          1%{?with_debug:.debug}%{?dist}.0.0.rdo0
+Release:          1%{?with_debug:.debug}%{?dist}.0.0.rdo1
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -295,6 +295,19 @@ Provides:         mysql-libs = %{sameevr}
 Provides:         mysql-libs%{?_isa} = %{sameevr}
 %endif # mysql_names
 
+# these are the provides for the libmysqlclient.so.18 compatibility
+# symlink; the library auto-provides system does not handle this kind
+# of symlink. They should be removed when the symlink is removed
+%if 0%{?__isa_bits} == 64
+Provides: libmysqlclient.so.18()(64bit)
+Provides: libmysqlclient.so.18(libmysqlclient_16)(64bit)
+Provides: libmysqlclient.so.18(libmysqlclient_18)(64bit)
+%else
+Provides: libmysqlclient.so.18
+Provides: libmysqlclient.so.18(libmysqlclient_16)
+Provides: libmysqlclient.so.18(libmysqlclient_18)
+%endif # isa_bits
+
 %description      libs
 The mariadb-libs package provides the essential shared libraries for any
 MariaDB/MySQL client program or interface. You will need to install this
@@ -361,7 +374,7 @@ Requires:         %{name}-common%{?_isa} = %{sameevr}
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 Requires:         galera >= 25.3.3
 Requires(post):   libselinux-utils
-Requires(post):   policycoreutils-python-utils
+Requires(post):   policycoreutils-python
 # wsrep requirements
 Requires:         lsof
 Requires:         rsync
@@ -1005,7 +1018,7 @@ mv %{wsrep_sst_rsync_tunnel_path}/COPYING %{wsrep_sst_rsync_tunnel_path}/COPYING
 rm %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
 # Client library and links
 rm %{buildroot}%{_libdir}/libmariadb.so.*
-unlink %{buildroot}%{_libdir}/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/libmyslqclient.so
 unlink %{buildroot}%{_libdir}/libmysqlclient_r.so
 unlink %{buildroot}%{_libdir}/libmariadb.so
 # Client plugins
@@ -1018,6 +1031,13 @@ rm %{buildroot}%{_bindir}/mariadb_config
 rm %{buildroot}%{_mandir}/man1/mysql_config*.1*
 unlink %{buildroot}%{_mandir}/man1/mariadb_config.1*
 %endif
+
+# Create symlinks to the 'libmariadb' library, for compatibility reasons
+# Note: the -libs subpackage has Provides: for this compat symlink; when
+# it is removed, they should also be removed
+pushd %{buildroot}%{_libdir}
+ln -s libmariadb.so.3 libmysqlclient.so.18
+popd
 
 %if %{without clibrary} && %{with devel}
 # This files are already included in mariadb-connector-c
@@ -1166,13 +1186,11 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %if %{with clibrary}
-# Can be dropped on F27 EOL
-%ldconfig_scriptlets libs
+%post libs -p /sbin/ldconfig
 %endif
 
 %if %{with embedded}
-# Can be dropped on F27 EOL
-%ldconfig_scriptlets embedded
+%post embedded -p /sbin/ldconfig
 %endif
 
 %if %{with galera}
@@ -1238,6 +1256,7 @@ fi
 %if %{with clibrary}
 %files libs
 %{_libdir}/libmariadb.so.*
+%{?with_devel:%{_libdir}/libmysqlclient.so.18}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
