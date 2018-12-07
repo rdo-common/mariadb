@@ -132,13 +132,8 @@
 
 
 # Provide mysql names for compatibility
-%if 0%{?fedora}
 %bcond_without mysql_names
 %bcond_without conflicts
-%else
-%bcond_with    mysql_names
-%bcond_with    conflicts
-%endif
 
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
@@ -149,7 +144,7 @@
 
 Name:             mariadb
 Version:          10.3.10
-Release:          1%{?with_debug:.debug}%{?dist}.0.0.rdo1
+Release:          1%{?with_debug:.debug}%{?dist}.0.0.rdo2
 Epoch:            3
 
 Summary:          MariaDB: a very fast and robust SQL database server
@@ -1592,6 +1587,9 @@ fi
 %endif
 
 %changelog
+* Fri Dec  7 2018 Haïkel Guémar <hguemar@fedoraproject.org> - 3:10.3.10-1.0.0.rdo2
+- Reintroduce mysql names for compat
+
 * Wed Oct 10 2018 Damien Ciabrini <dciabrin@redhat.com> - 3:10.3.10-1.0.0.rdo0
 - Rebase to version 10.3.10 from Fedora 29
 - Keep extra SST method wsrep_sst_rsync_tunnel
