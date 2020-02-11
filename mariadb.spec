@@ -16,7 +16,7 @@
 %global force_run_testsuite 0
 
 # Aditional SELinux rules
-%global require_mysql_selinux 1
+%global require_mysql_selinux 0
 
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %global _pkgdocdirname %{pkg_name}%{!?_pkgdocdir:-%{version}}
@@ -152,7 +152,7 @@
 
 Name:             mariadb
 Version:          10.3.20
-Release:          3%{?with_debug:.debug}%{?dist}.0.0.rdo0
+Release:          3%{?with_debug:.debug}%{?dist}.0.0.rdo1
 Epoch:            3
 
 Summary:          A very fast and robust SQL database server
@@ -1628,6 +1628,9 @@ fi
 %endif
 
 %changelog
+* Tue Feb 11 2020 Damien Ciabrini <dciabrin@redhat.com> - 10.3.20-3.0.0.rdo1
+- Do not depend on mysql-selinux, use selinux-policy-targeted instead
+
 * Mon Dec 23 2019 Damien Ciabrini <dciabrin@redhat.com> - 10.3.20-3.0.0.rdo0
 - Rebase to version 10.3.20 from Fedora 31
 - Keep extra SST method wsrep_sst_rsync_tunnel
